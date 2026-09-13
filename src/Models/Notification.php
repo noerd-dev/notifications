@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace NoerdNotifications\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Noerd\Models\NoerdUser;
 use Noerd\Traits\BelongsToTenant;
+use NoerdNotifications\Database\Factories\NotificationFactory;
 use NoerdNotifications\Support\NotificationTarget;
 
 /**
@@ -19,6 +22,7 @@ use NoerdNotifications\Support\NotificationTarget;
 class Notification extends Model
 {
     use BelongsToTenant;
+    use HasFactory;
 
     protected $table = 'noerd_notifications';
 
@@ -59,5 +63,10 @@ class Notification extends Model
     public function notificationTarget(): NotificationTarget
     {
         return NotificationTarget::fromArray($this->target);
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return NotificationFactory::new();
     }
 }

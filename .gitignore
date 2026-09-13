@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Composer dependencies (excluded to prevent class conflicts when used as path repository)
+vendor/
+composer.lock
+
+# Development files
+.DS_Store
+*.log
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Standalone test run artifacts
+.phpunit.cache/

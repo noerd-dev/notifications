@@ -9,9 +9,9 @@ use NoerdNotifications\Services\NotificationService;
 
 class PruneNotificationsCommand extends Command
 {
-    protected $signature = 'notifications:prune {--days=90 : Delete read notifications older than this}';
+    protected $signature = 'notifications:prune {--days=90 : Delete notifications that were read more than this many days ago}';
 
-    protected $description = 'Delete read notifications older than the retention period';
+    protected $description = 'Delete notifications that were read longer ago than the retention period';
 
     public function handle(NotificationService $notifications): int
     {

@@ -1,24 +1,55 @@
 {
     "name": "noerd/notifications",
-    "description": "In-app notifications for noerd applications: a bell in the top bar and a generic API every module sends through.",
+    "description": "In-app notifications for the noerd framework: a bell in the top bar with an unread badge, and one API every module sends through — a service call or a Laravel notification channel",
     "type": "library",
     "version": "v0.1.0",
-    "license": "proprietary",
+    "keywords": [
+        "laravel",
+        "livewire",
+        "noerd",
+        "notifications",
+        "in-app",
+        "multi-tenant"
+    ],
+    "homepage": "https://github.com/noerd-dev/notifications",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Johannes Brock"
+        }
+    ],
     "require": {
+        "php": "^8.3",
         "laravel/framework": "^12.0 || ^13.0",
-        "noerd/noerd": "^0.16.0",
-        "noerd/modal": "*"
+        "noerd/noerd": "^0.16.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^10.6 || ^11.1",
+        "pestphp/pest": "^4.0"
     },
     "autoload": {
         "psr-4": {
-            "NoerdNotifications\\": "src/"
+            "NoerdNotifications\\": "src/",
+            "NoerdNotifications\\Tests\\": "tests/",
+            "NoerdNotifications\\Database\\Factories\\": "database/factories/"
         }
     },
+    "scripts": {
+        "test": "pest --compact",
+        "lint": "pint --test"
+    },
+    "minimum-stability": "stable",
     "extra": {
         "laravel": {
             "providers": [
                 "NoerdNotifications\\Providers\\NoerdNotificationsServiceProvider"
             ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
         }
     }
 }

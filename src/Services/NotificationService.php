@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace NoerdNotifications\Services;
 
 use Illuminate\Database\Eloquent\Collection;
+use NoerdNotifications\Events\NotificationSent;
 use NoerdNotifications\Models\Notification;
+use NoerdNotifications\Support\HeroiconName;
 use NoerdNotifications\Support\NotificationTarget;
 
 /**
@@ -27,16 +29,22 @@ class NotificationService
         ?string $icon = null,
         ?string $type = null,
     ): Notification {
-        return Notification::create([
+        $notification = Notification::create([
             'tenant_id' => $tenantId,
             'user_id' => $userId,
             'type' => $type,
             'title' => mb_substr($title, 0, 255),
             'body' => $body,
-            'icon' => $icon,
+            // An unknown icon name is dropped rather than stored: it would throw
+            // on every render of the bell.
+            'icon' => HeroiconName::exists($icon) ? $icon : null,
             'level' => in_array($level, self::LEVELS, true) ? $level : 'info',
             'target' => $target === null || $target->isEmpty() ? null : $target->toArray(),
         ]);
+
+        NotificationSent::dispatch($notification);
+
+        return $notification;
     }
 
     public function unreadCount(int $userId, int $tenantId): int
@@ -71,14 +79,14 @@ class NotificationService
     }
 
     /**
-     * Delete READ notifications older than the given number of days; unread ones
-     * stay until the user saw them.
+     * Delete notifications that were READ more than the given number of days
+     * ago; unread ones stay until the user saw them.
      */
     public function prune(int $days): int
     {
         return Notification::withoutGlobalScopes()
             ->whereNotNull('read_at')
-            ->where('created_at', '<', now()->subDays($days))
+            ->where('read_at', '<', now()->subDays($days))
             ->delete();
     }
 }

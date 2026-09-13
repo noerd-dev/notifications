@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 
-uses(Tests\TestCase::class);
+uses(NoerdNotifications\Tests\TestCase::class);
 
 /**
  * Laravel Boost renders a package's guideline through Blade and silently DROPS

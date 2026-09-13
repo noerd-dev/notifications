@@ -7,6 +7,7 @@ use Noerd\Helpers\FormatHelper;
 use Noerd\Helpers\NoerdAuth;
 use NoerdNotifications\Models\Notification;
 use NoerdNotifications\Services\NotificationService;
+use NoerdNotifications\Support\HeroiconName;
 
 /**
  * The bell in the top bar: unread badge, the latest notifications, "mark all as
@@ -118,7 +119,7 @@ new class extends Component {
                             'flex w-full cursor-pointer gap-3 border-b border-gray-50 px-4 py-3 text-left hover:bg-gray-50',
                             'bg-brand-primary/5' => $notification->isUnread(),
                         ])>
-                    <x-icon :name="$notification->icon ?: 'bell'" @class(['mt-0.5 h-5 w-5 shrink-0', $levelColors[$notification->level] ?? $levelColors['info']]) />
+                    <x-icon :name="HeroiconName::orFallback($notification->icon)" @class(['mt-0.5 h-5 w-5 shrink-0', $levelColors[$notification->level] ?? $levelColors['info']]) />
                     <span class="min-w-0 flex-1">
                         <span @class(['block truncate text-sm text-gray-900', 'font-semibold' => $notification->isUnread()])>{{ $notification->title }}</span>
                         @if($notification->body)

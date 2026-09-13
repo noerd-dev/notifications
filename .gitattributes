@@ -1,0 +1,13 @@
+# Keep dist installs (Packagist archives) lean: ship only what consumers need
+# at runtime. NOT excluded on purpose:
+# - resources/boost/ -> the Boost guideline rendered into the host's agent rules
+# - tests/TestCase.php -> reusable test setup for projects extending the module
+/.github            export-ignore
+/tests/Feature      export-ignore
+/tests/Pest.php     export-ignore
+/phpunit.xml        export-ignore
+/.phpunit.cache     export-ignore
+/pint.json          export-ignore
+/composer.lock      export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore

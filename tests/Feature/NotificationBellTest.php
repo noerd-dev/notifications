@@ -14,7 +14,7 @@ use NoerdNotifications\Providers\NoerdNotificationsServiceProvider;
 use NoerdNotifications\Services\NotificationService;
 use NoerdNotifications\Support\NotificationTarget;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+uses(NoerdNotifications\Tests\TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->user = NoerdUser::factory()->create();
@@ -87,6 +87,14 @@ it('navigates to a page target', function (): void {
     Livewire::test('notifications::notification-bell')
         ->call('openNotification', $notification->id)
         ->assertRedirect('/zz-page');
+});
+
+it('renders a fallback icon for a stored icon name that does not exist', function (): void {
+    Notification::factory()->create(['user_id' => $this->user->id, 'tenant_id' => $this->tenant->id, 'title' => 'Zz broken icon', 'icon' => 'zz-no-such-icon']);
+
+    Livewire::test('notifications::notification-bell')
+        ->assertOk()
+        ->assertSee('Zz broken icon');
 });
 
 it('does not open a notification of another user', function (): void {
