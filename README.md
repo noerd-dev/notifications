@@ -3,10 +3,15 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/noerd/notifications.svg)](https://packagist.org/packages/noerd/notifications)
 [![License](https://img.shields.io/packagist/l/noerd/notifications.svg)](LICENSE)
 
-In-app notifications for the [noerd framework](https://github.com/noerd-dev/noerd): a bell in
-the top bar with a red badge for unread entries, a dropdown with the latest notifications,
-"Mark all as read", and a click that opens the notification's target. Every module of an
-application sends through one API — a service call, or a regular Laravel notification channel.
+An **extension package for [`noerd/noerd`](https://github.com/noerd-dev/noerd)**, the
+YAML-driven Livewire framework for multi-tenant Laravel applications. It plugs into the noerd
+top bar and the noerd user and tenant model — it is not a standalone Laravel package and does
+nothing without a noerd installation.
+
+What it adds: in-app notifications for every app built on noerd — a bell in the top bar with a
+red badge for unread entries, a dropdown with the latest notifications, "Mark all as read", and a
+click that opens the notification's target. Every module of an application sends through one
+API — a service call, or a regular Laravel notification channel.
 
 ![The notification bell: unread badge, dropdown, opening a target, mark all as read](art/notification-bell.gif)
 
@@ -29,8 +34,11 @@ application sends through one API — a service call, or a regular Laravel notif
 
 ## Requirements
 
-- PHP 8.3+, Laravel 12 or 13
-- [`noerd/noerd`](https://github.com/noerd-dev/noerd) 0.16+ installed in the project (`php artisan noerd:install`)
+- A Laravel 12 or 13 application on PHP 8.3+ that runs the noerd framework:
+  [`noerd/noerd`](https://github.com/noerd-dev/noerd) 0.16+ installed and set up
+  (`composer require noerd/noerd && php artisan noerd:install`). The package renders into
+  noerd's top bar, authenticates against noerd's user guard and stores notifications per noerd
+  tenant — there is nothing to hook into in a plain Laravel app
 
 ## Installation
 
