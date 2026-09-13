@@ -8,7 +8,7 @@ the top bar with a red badge for unread entries, a dropdown with the latest noti
 "Mark all as read", and a click that opens the notification's target. Every module of an
 application sends through one API — a service call, or a regular Laravel notification channel.
 
-<!-- screenshot: bell -->
+![The notification bell: unread badge, dropdown, opening a target, mark all as read](art/notification-bell.gif)
 
 ## Features
 
