@@ -1,0 +1,24 @@
+{
+    "name": "noerd/notifications",
+    "description": "In-app notifications for noerd applications: a bell in the top bar and a generic API every module sends through.",
+    "type": "library",
+    "version": "v0.1.0",
+    "license": "proprietary",
+    "require": {
+        "laravel/framework": "^12.0 || ^13.0",
+        "noerd/noerd": "^0.16.0",
+        "noerd/modal": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "NoerdNotifications\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NoerdNotifications\\Providers\\NoerdNotificationsServiceProvider"
+            ]
+        }
+    }
+}
