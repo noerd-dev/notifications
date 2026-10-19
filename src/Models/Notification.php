@@ -8,14 +8,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Noerd\Models\NoerdUser;
 use Noerd\Traits\BelongsToTenant;
 use NoerdNotifications\Database\Factories\NotificationFactory;
 use NoerdNotifications\Support\NotificationTarget;
 
 /**
- * One in-app notification of one user in one tenant.
+ * One in-app notification of one recipient in one tenant. The recipient is a
+ * morph (`notifiable`): a backend user, or any other model an app notifies.
  *
  * @property array{route?: ?string, component?: ?string, arguments?: array<string, mixed>, url?: ?string}|null $target
  */
@@ -33,14 +34,36 @@ class Notification extends Model
         'read_at' => 'datetime',
     ];
 
-    public function user(): BelongsTo
+    public static function userMorphClass(): string
     {
-        return $this->belongsTo(NoerdUser::class);
+        return (new NoerdUser())->getMorphClass();
     }
 
+    public function notifiable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function scopeForNotifiable(Builder $query, Model $notifiable, int $tenantId): Builder
+    {
+        return $query->whereMorphedTo('notifiable', $notifiable)->where('tenant_id', $tenantId);
+    }
+
+    /**
+     * Short form for the backend user — the recipient of the bell.
+     */
     public function scopeForUser(Builder $query, int $userId, int $tenantId): Builder
     {
-        return $query->where('user_id', $userId)->where('tenant_id', $tenantId);
+        return $query
+            ->where('notifiable_type', self::userMorphClass())
+            ->where('notifiable_id', $userId)
+            ->where('tenant_id', $tenantId);
+    }
+
+    public function isFor(Model $notifiable): bool
+    {
+        return $this->notifiable_type === $notifiable->getMorphClass()
+            && (int) $this->notifiable_id === (int) $notifiable->getKey();
     }
 
     public function scopeUnread(Builder $query): Builder

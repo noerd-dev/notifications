@@ -16,7 +16,9 @@ return new class extends Migration {
         Schema::create('noerd_notifications', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('tenant_id')->constrained('tenants')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('noerd_users')->cascadeOnDelete();
+            // Whoever receives it: a backend user or any other model (an employee
+            // account of an app). No foreign key — the owner of the model cleans up.
+            $table->morphs('notifiable');
             $table->string('type')->nullable();
             $table->string('title');
             $table->text('body')->nullable();
@@ -26,7 +28,7 @@ return new class extends Migration {
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
 
-            $table->index(['user_id', 'tenant_id', 'read_at']);
+            $table->index(['notifiable_type', 'notifiable_id', 'tenant_id', 'read_at'], 'noerd_notifications_notifiable_read_index');
         });
     }
 

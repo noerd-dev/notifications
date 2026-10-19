@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NoerdNotifications\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Noerd\Models\NoerdUser;
 use Noerd\Models\Tenant;
 use NoerdNotifications\Models\Notification;
@@ -18,7 +19,8 @@ class NotificationFactory extends Factory
     {
         return [
             'tenant_id' => Tenant::factory(),
-            'user_id' => NoerdUser::factory(),
+            'notifiable_type' => Notification::userMorphClass(),
+            'notifiable_id' => NoerdUser::factory(),
             'type' => null,
             'title' => $this->faker->sentence(4),
             'body' => $this->faker->sentence(),
@@ -27,6 +29,15 @@ class NotificationFactory extends Factory
             'target' => null,
             'read_at' => null,
         ];
+    }
+
+    public function recipient(Model|int $recipient): static
+    {
+        if (is_int($recipient)) {
+            return $this->state(['notifiable_type' => Notification::userMorphClass(), 'notifiable_id' => $recipient]);
+        }
+
+        return $this->state(['notifiable_type' => $recipient->getMorphClass(), 'notifiable_id' => $recipient->getKey()]);
     }
 
     public function read(): static

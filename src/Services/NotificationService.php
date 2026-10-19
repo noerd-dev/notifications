@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace NoerdNotifications\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
 use NoerdNotifications\Events\NotificationSent;
 use NoerdNotifications\Models\Notification;
 use NoerdNotifications\Support\HeroiconName;
@@ -12,15 +15,18 @@ use NoerdNotifications\Support\NotificationTarget;
 
 /**
  * The one way a module sends an in-app notification. Every call carries the
- * user AND the tenant explicitly — senders are often queued jobs without a
- * signed-in user.
+ * recipient AND the tenant explicitly — senders are often queued jobs without a
+ * signed-in user. The recipient is a backend user (`userId`) or any other model
+ * (`notifiable`, e.g. an employee account of an app) — exactly one of both.
+ *
+ * Every query method takes the recipient as a model or as a backend user id.
  */
 class NotificationService
 {
     public const array LEVELS = ['info', 'success', 'warning', 'error'];
 
     public function send(
-        int $userId,
+        ?int $userId,
         int $tenantId,
         string $title,
         ?string $body = null,
@@ -28,10 +34,16 @@ class NotificationService
         string $level = 'info',
         ?string $icon = null,
         ?string $type = null,
+        ?Model $notifiable = null,
     ): Notification {
+        if (($userId === null) === ($notifiable === null)) {
+            throw new InvalidArgumentException('Pass exactly one recipient: userId or notifiable.');
+        }
+
         $notification = Notification::create([
             'tenant_id' => $tenantId,
-            'user_id' => $userId,
+            'notifiable_type' => $notifiable?->getMorphClass() ?? Notification::userMorphClass(),
+            'notifiable_id' => $notifiable?->getKey() ?? $userId,
             'type' => $type,
             'title' => mb_substr($title, 0, 255),
             'body' => $body,
@@ -47,18 +59,17 @@ class NotificationService
         return $notification;
     }
 
-    public function unreadCount(int $userId, int $tenantId): int
+    public function unreadCount(int|Model $recipient, int $tenantId): int
     {
-        return Notification::withoutGlobalScopes()->forUser($userId, $tenantId)->unread()->count();
+        return $this->recipientQuery($recipient, $tenantId)->unread()->count();
     }
 
     /**
      * @return Collection<int, Notification>
      */
-    public function latest(int $userId, int $tenantId, int $limit = 20): Collection
+    public function latest(int|Model $recipient, int $tenantId, int $limit = 20): Collection
     {
-        return Notification::withoutGlobalScopes()
-            ->forUser($userId, $tenantId)
+        return $this->recipientQuery($recipient, $tenantId)
             ->latest()
             ->latest('id')
             ->limit($limit)
@@ -70,12 +81,20 @@ class NotificationService
         $notification->markAsRead();
     }
 
-    public function markAllAsRead(int $userId, int $tenantId): int
+    public function markAllAsRead(int|Model $recipient, int $tenantId): int
     {
-        return Notification::withoutGlobalScopes()
-            ->forUser($userId, $tenantId)
+        return $this->recipientQuery($recipient, $tenantId)
             ->unread()
             ->update(['read_at' => now()]);
+    }
+
+    /**
+     * Delete every notification of a recipient — called by the owner of a
+     * notifiable model when it is deleted (there is no foreign key).
+     */
+    public function forget(Model $notifiable): int
+    {
+        return Notification::withoutGlobalScopes()->whereMorphedTo('notifiable', $notifiable)->delete();
     }
 
     /**
@@ -88,5 +107,17 @@ class NotificationService
             ->whereNotNull('read_at')
             ->where('read_at', '<', now()->subDays($days))
             ->delete();
+    }
+
+    /**
+     * @return Builder<Notification>
+     */
+    public function recipientQuery(int|Model $recipient, int $tenantId): Builder
+    {
+        $query = Notification::withoutGlobalScopes();
+
+        return $recipient instanceof Model
+            ? $query->forNotifiable($recipient, $tenantId)
+            : $query->forUser($recipient, $tenantId);
     }
 }

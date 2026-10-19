@@ -78,6 +78,7 @@ app(NotificationService::class)->send(
 | Argument | Meaning |
 |----------|---------|
 | `userId`, `tenantId` | The recipient and the tenant the notification belongs to — always explicit, never taken from the session |
+| `notifiable` | Instead of `userId`: any other Eloquent model as recipient (e.g. an employee account of an app). Pass exactly one of both |
 | `title` | Shown in bold; stored already translated (translate with `__()` when sending) |
 | `body` | Optional second line |
 | `target` | Where a click leads (see below); `null` only marks the entry read |
@@ -176,11 +177,12 @@ The model ships a factory:
 ```php
 use NoerdNotifications\Models\Notification;
 
-Notification::factory()->for($user, 'user')->create(['tenant_id' => $tenantId]);
+Notification::factory()->recipient($user)->create(['tenant_id' => $tenantId]);
 Notification::factory()->read()->level('warning')->create([...]);
 ```
 
-Assert a sent notification with `Notification::withoutGlobalScopes()->where('user_id', ...)`, or
+Assert a sent notification with `Notification::withoutGlobalScopes()->forNotifiable($user, $tenantId)`
+(or `forUser($userId, $tenantId)`), or
 fake the `NotificationSent` event with `Event::fake()`.
 
 ## Development

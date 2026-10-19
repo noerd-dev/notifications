@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NoerdNotifications\Channels;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notification as LaravelNotification;
 use InvalidArgumentException;
 use NoerdNotifications\Models\Notification;
@@ -31,15 +32,19 @@ class NoerdChannel
             throw new InvalidArgumentException($notification::class . '::toNoerd() must return a ' . NoerdMessage::class . '.');
         }
 
-        $tenantId = $message->tenantId ?? ($notifiable->selected_tenant_id ?? null);
+        if (! $notifiable instanceof Model) {
+            throw new InvalidArgumentException('The NoerdChannel stores notifications for Eloquent models only.');
+        }
 
-        // A user without a tenant has no bell to show the notification in.
+        $tenantId = $message->tenantId ?? ($notifiable->selected_tenant_id ?? $notifiable->tenant_id ?? null);
+
+        // A recipient without a tenant has no bell to show the notification in.
         if ($tenantId === null) {
             return null;
         }
 
         return $this->notifications->send(
-            userId: (int) $notifiable->getKey(),
+            userId: null,
             tenantId: (int) $tenantId,
             title: $message->title,
             body: $message->body,
@@ -47,6 +52,7 @@ class NoerdChannel
             level: $message->level,
             icon: $message->icon,
             type: $message->type,
+            notifiable: $notifiable,
         );
     }
 }

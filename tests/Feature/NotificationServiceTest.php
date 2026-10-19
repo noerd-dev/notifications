@@ -36,7 +36,7 @@ it('stores a notification for the user in the tenant', function (): void {
     );
 
     expect($notification->tenant_id)->toBe($this->tenant->id)
-        ->and($notification->user_id)->toBe($this->user->id)
+        ->and($notification->isFor($this->user))->toBeTrue()
         ->and($notification->isUnread())->toBeTrue()
         ->and($notification->notificationTarget()->arguments)->toBe(['modelId' => 7])
         ->and($notification->notificationTarget()->route)->toBe('zz.record');
@@ -66,9 +66,9 @@ it('counts and marks read only within the user and tenant', function (): void {
 });
 
 it('prunes only notifications read longer ago than the retention', function (): void {
-    $readLongAgo = Notification::factory()->create(['user_id' => $this->user->id, 'tenant_id' => $this->tenant->id, 'read_at' => now()->subDays(100)]);
-    $readRecently = Notification::factory()->create(['user_id' => $this->user->id, 'tenant_id' => $this->tenant->id, 'read_at' => now()->subDay()]);
-    $oldButUnread = Notification::factory()->create(['user_id' => $this->user->id, 'tenant_id' => $this->tenant->id, 'created_at' => now()->subDays(200)]);
+    $readLongAgo = Notification::factory()->recipient($this->user->id)->create(['tenant_id' => $this->tenant->id, 'read_at' => now()->subDays(100)]);
+    $readRecently = Notification::factory()->recipient($this->user->id)->create(['tenant_id' => $this->tenant->id, 'read_at' => now()->subDay()]);
+    $oldButUnread = Notification::factory()->recipient($this->user->id)->create(['tenant_id' => $this->tenant->id, 'created_at' => now()->subDays(200)]);
 
     $this->artisan('notifications:prune', ['--days' => 90])->assertExitCode(0);
 
@@ -96,7 +96,7 @@ it('stores a Laravel notification sent through the NoerdChannel', function (): v
 
     expect($notification->title)->toBe('Zz via channel')
         ->and($notification->tenant_id)->toBe($this->tenant->id)
-        ->and($notification->user_id)->toBe($this->user->id)
+        ->and($notification->isFor($this->user))->toBeTrue()
         ->and($notification->notificationTarget()->url)->toBe('/zz');
 });
 
@@ -160,4 +160,31 @@ it('registers the install, update and prune commands', function (): void {
         ->toHaveKey('noerd:install-notifications')
         ->toHaveKey('noerd:update-notifications')
         ->toHaveKey('notifications:prune');
+});
+
+it('stores a notification for any other model as recipient', function (): void {
+    $tenant = $this->tenant;
+
+    $notification = $this->service->send(userId: null, tenantId: $tenant->id, title: 'Zz to a tenant', notifiable: $tenant);
+
+    expect($notification->isFor($tenant))->toBeTrue()
+        ->and($notification->isFor($this->user))->toBeFalse()
+        ->and($this->service->unreadCount($tenant, $tenant->id))->toBe(1)
+        ->and($this->service->unreadCount($this->user->id, $tenant->id))->toBe(0);
+});
+
+it('rejects a notification without or with two recipients', function (): void {
+    expect(fn() => $this->service->send(userId: null, tenantId: $this->tenant->id, title: 'Zz nobody'))
+        ->toThrow(InvalidArgumentException::class)
+        ->and(fn() => $this->service->send(userId: $this->user->id, tenantId: $this->tenant->id, title: 'Zz both', notifiable: $this->tenant))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+it('deletes the notifications of a deleted user', function (): void {
+    $this->service->send($this->user->id, $this->tenant->id, 'Zz gone with the user');
+    $keep = $this->service->send(NoerdUser::factory()->create()->id, $this->tenant->id, 'Zz stays');
+
+    $this->user->delete();
+
+    expect(Notification::withoutGlobalScopes()->pluck('id')->all())->toBe([$keep->id]);
 });

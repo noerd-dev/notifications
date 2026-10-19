@@ -15,7 +15,8 @@ module never knows who sends them or what the targets are
 
 ### Sending
 - `app(NotificationService::class)->send(userId:, tenantId:, title:, body:, target:, level:, icon:, type:)`
-  — user AND tenant are always explicit (senders are often queued jobs without a signed-in user);
+  for a backend user, or `send(userId: null, …, notifiable: $model)` for ANY other recipient model
+  (an employee account of an app) — exactly one of both. Recipient AND tenant are always explicit (senders are often queued jobs without a signed-in user);
   `level` is `info|success|warning|error`, `icon` a heroicon name (validated by
   `Support\HeroiconName` — an unknown name is stored as `null` and rendered as the bell, never
   thrown), `type` a free key of the sender (`liefertool.menu_imported`). Texts are stored already
@@ -26,15 +27,23 @@ module never knows who sends them or what the targets are
   plain page (navigated to). A notification without target is only marked read
 - Laravel way: `NoerdUser` is `Notifiable`; a notification class whose `via()` returns
   `NoerdChannel::class` and whose `toNoerd($notifiable)` returns a `NoerdMessage` is stored the same
-  way (tenant from the message, else the notifiable's `selected_tenant_id`)
+  way for any Eloquent notifiable (tenant from the message, else the notifiable's
+  `selected_tenant_id`, else its `tenant_id`)
+- The recipient is a MORPH without a foreign key (`notifiable_type`/`notifiable_id`, like Laravel's
+  own notifications table). A deleted `NoerdUser` takes its notifications along (listener in the
+  provider); the module owning another notifiable model calls `NotificationService::forget($model)`
+  when it deletes one
 
 ### Structure
 - `Models\Notification` (`noerd_notifications`, `BelongsToTenant`, `HasFactory`, `$guarded = []`):
-  `tenant_id`, `user_id`, `type`, `title`, `body`, `icon`, `level`, `target` (json), `read_at`;
-  scopes `forUser($userId, $tenantId)`, `unread()`; `markAsRead()`, `notificationTarget()`.
-  `NotificationFactory` (states `read()`, `level()`, `target()`) is what consumers' tests use
-- `Services\NotificationService` (singleton): `send()`, `unreadCount()`, `latest()`, `markAsRead()`,
-  `markAllAsRead()`, `prune($days)`
+  `tenant_id`, `notifiable_type`, `notifiable_id`, `type`, `title`, `body`, `icon`, `level`,
+  `target` (json), `read_at`; `notifiable()` (morphTo), scopes `forNotifiable($model, $tenantId)`,
+  `forUser($userId, $tenantId)` (the backend-user short form), `unread()`; `isFor($model)`,
+  `markAsRead()`, `notificationTarget()`. `NotificationFactory` (states `recipient($modelOrUserId)`,
+  `read()`, `level()`, `target()`) is what consumers' tests use
+- `Services\NotificationService` (singleton): `send()`, `unreadCount()`, `latest()`,
+  `markAllAsRead()` (each takes a backend user id OR a recipient model), `markAsRead()`,
+  `recipientQuery()`, `forget($model)`, `prune($days)`
 - Livewire `notifications::notification-bell` (`resources/views/components/`), registered on the
   core `TopBarRegistry` in the provider through `callAfterResolving()` — no core change, no YAML.
   It polls (`wire:poll.30s`), uses `<x-noerd::action-menu>` with a custom trigger, and only ever

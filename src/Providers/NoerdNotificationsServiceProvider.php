@@ -6,6 +6,7 @@ namespace NoerdNotifications\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Noerd\Models\NoerdUser;
 use Noerd\Services\TopBarRegistry;
 use NoerdNotifications\Commands\NotificationsInstallCommand;
 use NoerdNotifications\Commands\NotificationsUpdateCommand;
@@ -34,6 +35,11 @@ class NoerdNotificationsServiceProvider extends ServiceProvider
             TopBarRegistry::class,
             fn(TopBarRegistry $registry) => $registry->register(self::BELL_COMPONENT),
         );
+
+        // The recipient is a morph without a foreign key: a deleted backend user
+        // takes their notifications along here. Other notifiables are cleaned up
+        // by the module that owns them (NotificationService::forget()).
+        NoerdUser::deleted(fn(NoerdUser $user) => $this->app->make(NotificationService::class)->forget($user));
 
         if ($this->app->runningInConsole()) {
             $this->commands([

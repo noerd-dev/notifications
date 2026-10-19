@@ -90,7 +90,7 @@ it('navigates to a page target', function (): void {
 });
 
 it('renders a fallback icon for a stored icon name that does not exist', function (): void {
-    Notification::factory()->create(['user_id' => $this->user->id, 'tenant_id' => $this->tenant->id, 'title' => 'Zz broken icon', 'icon' => 'zz-no-such-icon']);
+    Notification::factory()->recipient($this->user->id)->create(['tenant_id' => $this->tenant->id, 'title' => 'Zz broken icon', 'icon' => 'zz-no-such-icon']);
 
     Livewire::test('notifications::notification-bell')
         ->assertOk()
