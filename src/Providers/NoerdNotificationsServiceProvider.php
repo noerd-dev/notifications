@@ -7,7 +7,7 @@ namespace NoerdNotifications\Providers;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Noerd\Models\NoerdUser;
-use Noerd\Services\TopBarRegistry;
+use Noerd\Services\ComponentSlotsRegistry;
 use NoerdNotifications\Commands\NotificationsInstallCommand;
 use NoerdNotifications\Commands\NotificationsUpdateCommand;
 use NoerdNotifications\Commands\PruneNotificationsCommand;
@@ -32,8 +32,8 @@ class NoerdNotificationsServiceProvider extends ServiceProvider
         // After resolving instead of app()->register(): the registry is filled on
         // whichever instance the top bar resolves, independent of provider order.
         $this->callAfterResolving(
-            TopBarRegistry::class,
-            fn(TopBarRegistry $registry) => $registry->register(self::BELL_COMPONENT),
+            ComponentSlotsRegistry::class,
+            fn(ComponentSlotsRegistry $registry) => $registry->register(ComponentSlotsRegistry::TOP_BAR, self::BELL_COMPONENT),
         );
 
         // The recipient is a morph without a foreign key: a deleted backend user

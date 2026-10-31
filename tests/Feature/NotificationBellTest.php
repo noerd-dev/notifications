@@ -8,7 +8,7 @@ use Livewire\Livewire;
 use Noerd\Helpers\TenantHelper;
 use Noerd\Models\NoerdUser;
 use Noerd\Models\Tenant;
-use Noerd\Services\TopBarRegistry;
+use Noerd\Services\ComponentSlotsRegistry;
 use NoerdNotifications\Models\Notification;
 use NoerdNotifications\Providers\NoerdNotificationsServiceProvider;
 use NoerdNotifications\Services\NotificationService;
@@ -26,7 +26,7 @@ beforeEach(function (): void {
 });
 
 it('is registered in the top bar', function (): void {
-    expect(app(TopBarRegistry::class)->all())->toContain(NoerdNotificationsServiceProvider::BELL_COMPONENT);
+    expect(app(ComponentSlotsRegistry::class)->get(ComponentSlotsRegistry::TOP_BAR))->toContain(NoerdNotificationsServiceProvider::BELL_COMPONENT);
 });
 
 it('shows a badge with the number of unread notifications', function (): void {

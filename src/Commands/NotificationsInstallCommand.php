@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NoerdNotifications\Commands;
 
 use Illuminate\Console\Command;
-use Noerd\Traits\InstallsNoerdModule;
+use Noerd\Commands\Concerns\InstallsNoerdModule;
 
 /**
  * Notifications is a support module without a tenant app and without anything

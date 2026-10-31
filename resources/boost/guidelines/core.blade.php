@@ -45,7 +45,7 @@ module never knows who sends them or what the targets are
   `markAllAsRead()` (each takes a backend user id OR a recipient model), `markAsRead()`,
   `recipientQuery()`, `forget($model)`, `prune($days)`
 - Livewire `notifications::notification-bell` (`resources/views/components/`), registered on the
-  core `TopBarRegistry` in the provider through `callAfterResolving()` — no core change, no YAML.
+  core `ComponentSlotsRegistry` (slot `TOP_BAR`) in the provider through `callAfterResolving()` — no core change, no YAML.
   It polls (`wire:poll.30s`), uses `<x-noerd::action-menu>` with a custom trigger, and only ever
   loads notifications of the signed-in user in the selected tenant (`openNotification()` answers 404
   otherwise)
