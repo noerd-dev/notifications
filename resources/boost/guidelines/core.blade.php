@@ -60,7 +60,7 @@ module never knows who sends them or what the targets are
 
 ### Tests
 - Pest tests in `tests/Feature`, bound to `NoerdNotifications\Tests\TestCase` (Orchestra
-  Testbench + sqlite via `Noerd\Tests\TestCase`, `RefreshDatabase`). Standalone / CI:
+  Testbench + sqlite via `Noerd\Tests\ModuleTestCase`, `RefreshDatabase`). Standalone / CI:
   `composer install && vendor/bin/pest` in the package; from a host:
   `php artisan test --compact app-modules/noerd-notifications/tests` (the host's sequential
   `Testbench` suite — never in parallel with other suites)

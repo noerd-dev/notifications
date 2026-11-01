@@ -22,15 +22,16 @@ and depends on `noerd/noerd` only.
   `src/Events/NotificationSent.php`, `src/Support/{NotificationTarget,NoerdMessage,HeroiconName}.php`
 - `src/Commands/` — `noerd:install-notifications`, `noerd:update-notifications`,
   `notifications:prune`
-- `src/Providers/NoerdNotificationsServiceProvider.php` — migrations, translations, Livewire
-  namespace `notifications::`, the bell on `TopBarRegistry`
+- `src/Providers/NoerdNotificationsServiceProvider.php` — a `NoerdModuleServiceProvider` (module key
+  `notifications`: migrations, translations, Livewire namespace `notifications::`), the bell on the
+  `ComponentSlotsRegistry`
 - `resources/views/components/notification-bell.blade.php`, `resources/lang/de.json`
 - `database/migrations/`, `tests/` (Pest, standalone on Orchestra Testbench)
 
 ## Working on the module
 
 - Tests bind `NoerdNotifications\Tests\TestCase` (Orchestra Testbench + sqlite `:memory:` via
-  `Noerd\Tests\TestCase`). Standalone / CI: `composer install && vendor/bin/pest`. From a host
+  `Noerd\Tests\ModuleTestCase`). Standalone / CI: `composer install && vendor/bin/pest`. From a host
   project: `php artisan test --compact app-modules/noerd-notifications/tests` — the host lists the
   folder in its `Testbench` suite, which runs sequentially, never in parallel with other suites.
   Tests prove mechanics with `zz` routes/components, never with a business module

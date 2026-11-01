@@ -10,12 +10,7 @@ namespace NoerdNotifications\Commands;
  */
 class NotificationsUpdateCommand extends NotificationsInstallCommand
 {
-    protected $signature = 'noerd:update-notifications {--force : Overwrite existing files without asking}';
+    protected $signature = 'noerd:update-notifications';
 
     protected $description = 'Update the noerd-notifications module';
-
-    public function handle(): int
-    {
-        return $this->runSupportModuleUpdate();
-    }
 }
